@@ -1,0 +1,47 @@
+---
+#####################################################################
+## Credentials
+#####################################################################
+## Default user is "ubuntu". Uncomment and change to create your 
+## "own" user.
+#
+# user_name: ubuntu
+#
+## Uncomment this to set the password to something you'll remember 
+## (rather than the long hex string in 
+## %HOME%\.vagrant.d\boxes\ubuntu*..*\Vagrantfile)
+#
+# user_password: SuperSecretPassword
+
+#####################################################################
+## Proxy
+#####################################################################
+# If you have an apt-cachier-ng proxy, or even just use a default 
+# proxy that doesn't do NTLM authentication, stick it in here!
+# apt_proxy: http://192.168.1.100:3142
+
+#####################################################################
+## Links
+#####################################################################
+## Set the following paths as appropriate
+##
+## Note that HostHome has been set Chmod to 600 for files, and 700 for directories.
+## while HostHomeExec has 700 for files and 700 for directories.
+#
+#link_dirs:
+#  - { src: "/HostHome/.dotfiles/openstack", dst: "/.config/openstack" }
+#  - { src: "/HostHome/.dotfiles/ansible", dst: "/.config/ansible" }
+#  - { src: "/HostHome/Sources", dst: "/Sources" }
+#  - { src: "/HostHomeExec/Sources/bin", dst: "/bin" }
+
+## These paths are ones which must be created before the above links can be created.
+## Particularly, .config but you might want to include "Documents" or "bin"
+#
+#create_dirs:
+#  - "/.config"
+
+## These are lines that are added to your config files on provisioning
+## You could include something about Byobu at this point, or starting the ssh-agent
+#
+#set_env_vars:
+#  - { file: "/.bashrc", line: "ANSIBLE_VAULT_PASSWORD_FILE=~/.config/ansible/ansible-vault" }

@@ -1,0 +1,41 @@
+---
+- name: Install other software with proxy
+  hosts: all
+  sudo: yes
+  environment:
+    http_proxy: "{{ apt_proxy|default(omit) }}"
+    https_proxy: "{{ apt_proxy|default(omit) }}"
+  
+  tasks:
+    - name: Install software via Apt
+      apt: 
+        name: "{{item}}"
+        state: latest
+      with_items:
+      - python-pip
+      - build-essential
+      - libssl-dev 
+      - libffi-dev
+      - python-dev
+      - aptitude
+      - qemu-utils
+
+- name: Install other software without proxy
+  hosts: all
+  sudo: yes
+  
+  tasks:
+    - name: Install Shade via Pip
+      pip:
+        name: shade
+        executable: /usr/bin/pip
+        version: 1.11.1
+    - name: Install other Python libraries
+      pip:
+        name: "{{item}}"
+        executable: /usr/bin/pip
+      with_items:
+      - simplejson
+      - python-openstackclient
+      - ansible
+      - pytz
