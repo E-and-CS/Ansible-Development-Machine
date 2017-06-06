@@ -21,9 +21,21 @@ Vagrant.configure("2") do |config|
     ubuntu.vm.boot_timeout = 1200
 
     ubuntu.vm.provider "virtualbox" do |vb|
-      vb.memory = 2048
-      vb.cpus = 2
-      # For some reason, the latest version of Vagrant/Virtualbox causes problems with shared drives that have options set
+      ## Uncomment these for GUI based systems. If you're doing this also select a desktop environment
+      ## in the group_vars/all.yml
+      #
+      # vb.memory = 2048
+      # vb.cpus = 2
+      # vb.customize ['modifyvm', :id, '--vram', '128']
+      # vb.customize ['modifyvm', :id, '--monitorcount', '3']
+      # vb.customize ['modifyvm', :id, '--usbxhci', 'on']
+      # vb.customize ['modifyvm', :id, '--draganddrop', 'bidirectional']
+      # vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+      
+      ## For some reason, the latest version of Vagrant/Virtualbox causes problems with shared drives
+      ## that have options set. This also means we can mount the folder "twice" - once with permissions
+      ## 0700 and the other with 0600 on files.
+      #
       vb.customize ['sharedfolder', 'add', :id, '--name', 'HostHome', '--hostpath', ENV['USERPROFILE']]
     end
 
