@@ -20,6 +20,20 @@
       - aptitude
       - qemu-utils
 
+    - name: Add Kubuntu Desktop Backports (skipped in other DEs)
+      apt_repository:
+        repo: 'ppa:kubuntu-ppa/backports'
+      when:
+      - DesktopBackports is defined and DesktopBackports == true
+      - DesktopEnvironment is defined and DesktopEnvironment == 'kubuntu-desktop'
+
+    - name: Install Desktop Environment (if defined)
+      apt:
+        name: "{{ DesktopEnvironment }}"
+        state: latest
+      when:
+      - DesktopEnvironment is defined
+
 - name: Install other software without proxy
   hosts: all
   sudo: yes
