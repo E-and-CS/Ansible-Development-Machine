@@ -45,3 +45,20 @@
 #
 #set_env_vars:
 #  - { file: "/.bashrc", line: "ANSIBLE_VAULT_PASSWORD_FILE=~/.config/ansible/ansible-vault" }
+
+#####################################################################
+## Desktop Environment?
+#####################################################################
+## Do you want to run a full desktop environment? If so, uncomment 
+## the following variable name for the environment you want.
+
+# DesktopEnvironment: ubuntu-desktop
+# DesktopEnvironment: kubuntu-desktop
+# DesktopEnvironment: lubuntu-desktop
+# DesktopEnvironment: xubuntu-desktop
+# DesktopEnvironment: ubuntu-mate-desktop
+# DesktopEnvironment: ubuntu-gnome-desktop
+
+## Should the desktop environment pull the latest backports?
+## Currently only Kubuntu has this.
+# DesktopBackports: true
