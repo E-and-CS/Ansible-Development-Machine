@@ -21,22 +21,59 @@ Vagrant.configure("2") do |config|
     ubuntu.vm.boot_timeout = 1200
 
     ubuntu.vm.provider "virtualbox" do |vb|
-      ## Uncomment these for GUI based systems. If you're doing this also select a desktop environment
-      ## in the group_vars/all.yml
-      #
+      #############################################################################################
+      ### DRIVE MOUNTING
+      #############################################################################################
+      ##
+      ## For some reason, the latest version of Vagrant/Virtualbox causes problems with shared
+      ##  drives that have options set. This also means we can mount the folder "twice" - once
+      ##  with permissions 0700 and the other with 0600 on files.
+      ##
+      vb.customize ['sharedfolder', 'add', :id, '--name', 'HostHome', '--hostpath', ENV['USERPROFILE']]
+      #############################################################################################
+      ### USING A GUI - COMMON OPTIONS
+      #############################################################################################
+      ##
+      ## Uncomment these for GUI based systems. If you're doing this, also select a desktop environment
+      ## ino the group_vars/all.yml file. I use Kubuntu, but you might want one of the others!
+      ##
+      ## Personally, when using a GUI, I like more memory and CPUs, but you might want to vary these
+      ## based on your own machine
+      ##
       # vb.memory = 2048
       # vb.cpus = 2
+      ##
+      ## This gives you more video RAM (required for modern desktop modes)
+      ##
       # vb.customize ['modifyvm', :id, '--vram', '128']
-      # vb.customize ['modifyvm', :id, '--monitorcount', '3']
+      ##
+      ## Optionally, turn on the option to use USB devices. If you're working "headlessly", you
+      ## might need to mess around with the Virtualbox app to get the "USB Filters" sorted.
+      ##
       # vb.customize ['modifyvm', :id, '--usbxhci', 'on']
+      #############################################################################################
+      ### USING A GUI - USING THE VIRTUALBOX APP TO RENDER THE GUI
+      #############################################################################################
+      ##
+      ## This tells Vagrant to boot this VM in GUI mode. Leave off if you're going to use RDP to access it.
+      ##
+      # vb.gui = true
+      ##
+      ## If you are using the GUI, these settings might be useful!
+      ##
+      # vb.customize ['modifyvm', :id, '--monitorcount', '3']
       # vb.customize ['modifyvm', :id, '--draganddrop', 'bidirectional']
-      # vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
-      
-      ## For some reason, the latest version of Vagrant/Virtualbox causes problems with shared drives
-      ## that have options set. This also means we can mount the folder "twice" - once with permissions
-      ## 0700 and the other with 0600 on files.
-      #
-      vb.customize ['sharedfolder', 'add', :id, '--name', 'HostHome', '--hostpath', ENV['USERPROFILE']]
+      # vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']  
+      #############################################################################################
+      ### USING A GUI - USING A REMOTE DESKTOP APPLICATION TO RENDER THE GUI
+      #############################################################################################
+      ##
+      ## This is RDP mode. Settings here based on:
+      ## https://www.virtualbox.org/manual/ch08.html#vboxmanage-modifyvm-vrde
+      ##
+      # vb.customize ["modifyvm", :id, "--vrde", 'on']
+      # vb.customize ["modifyvm", :id, "--vrdeport", '12345']
+      # vb.customize ["modifyvm", :id, "--vrdeaddress", '127.0.0.1']
     end
 
     # Perform standard user account changes
