@@ -29,7 +29,7 @@
 
     - name: Install Desktop Environment (if defined)
       apt:
-        name: "{{ DesktopEnvironment }}"
+        name: "{{ DesktopEnvironment }}^"
         state: latest
       when:
       - DesktopEnvironment is defined
