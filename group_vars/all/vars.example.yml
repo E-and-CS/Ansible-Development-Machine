@@ -5,6 +5,7 @@
 ## Default user is "ubuntu". Uncomment and change to create your 
 ## "own" user.
 #
+# original_user_name: ubuntu
 # user_name: ubuntu
 #
 ## Uncomment this to set the password to something you'll remember 
@@ -29,22 +30,49 @@
 ## while HostHomeExec has 700 for files and 700 for directories.
 #
 #link_dirs:
-#  - { src: "/HostHome/.dotfiles/openstack", dst: "/.config/openstack" }
-#  - { src: "/HostHome/.dotfiles/ansible", dst: "/.config/ansible" }
-#  - { src: "/HostHome/Sources", dst: "/Sources" }
-#  - { src: "/HostHomeExec/Sources/bin", dst: "/bin" }
-
+#  - { src: "/HostHome/Standard_Desktop_Files/azure", dst: "/.azure" }
+#  - { src: "/HostHomeExec/Standard_Desktop_Files/bin", dst: "/bin" }
+#
+#  - { src: "/HostHome/Standard_Desktop_Files/dotfiles/openstack", dst: "/.config/openstack" }
+#  - { src: "/HostHome/Standard_Desktop_Files/dotfiles/ansible", dst: "/.config/ansible" }
+#  - { src: "/HostHome/Standard_Desktop_Files/dotfiles/.bash_history", dst: "/.bash_history" }
+#  - { src: "/HostHome/Standard_Desktop_Files/dotfiles/.gitconfig", dst: "/.gitconfig" }
+#
+#  - { src: "/HostHome/Standard_Desktop_Files/ssh/authorized_keys", dst: "/.ssh/authorized_keys" }
+#  - { src: "/HostHome/Standard_Desktop_Files/ssh/config", dst: "/.ssh/config" }
+#  - { src: "/HostHome/Standard_Desktop_Files/SSH/id_rsa.pub", dst: "/.ssh/id_rsa.pub" }
+#  - { src: "/HostHome/Standard_Desktop_Files/SSH/id_rsa", dst: "/.ssh/id_rsa" }
+#
+#  - { src: "/HostHomeExec/Standard_Desktop_Files/Terraform", dst: "/terraform" }
+#
 ## These paths are ones which must be created before the above links can be created.
 ## Particularly, .config but you might want to include "Documents" or "bin"
 #
 #create_dirs:
 #  - "/.config"
-
+#
 ## These are lines that are added to your config files on provisioning
 ## You could include something about Byobu at this point, or starting the ssh-agent
 #
 #set_env_vars:
 #  - { file: "/.bashrc", line: "ANSIBLE_VAULT_PASSWORD_FILE=~/.config/ansible/ansible-vault" }
+
+#####################################################################
+## Routine Post-Install Stuff
+#####################################################################
+## I typically install certain pacakges after each run. You might also want to do this
+#
+#install_apt_packages:
+#  - git-cola
+#
+## These are lines that are added to Cron jobs on your server
+## Key values are:
+## name, special_time, minute, hour, day, month, weekday, user, command, envvar
+#
+#set_cron_items:
+#  - name: Remind yourself to take a break
+#    minute: */15
+#    command: wall "Take a break"
 
 #####################################################################
 ## Desktop Environment?
@@ -58,7 +86,3 @@
 # DesktopEnvironment: xubuntu-desktop
 # DesktopEnvironment: ubuntu-mate-desktop
 # DesktopEnvironment: ubuntu-gnome-desktop
-
-## Should the desktop environment pull the latest backports?
-## Currently only Kubuntu has this.
-# DesktopBackports: true

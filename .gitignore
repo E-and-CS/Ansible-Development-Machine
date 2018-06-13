@@ -1,2 +1,3 @@
 *-cloudimg-console.log
 .vagrant
+*.retry

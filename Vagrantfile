@@ -12,15 +12,30 @@
 
 # While it is not a requirement, I would suggest you install the following plugin for Vagrant:
 # vagrant plugin install vagrant-vbguest
+#
+# Also, if you're destroying and rebuilding this machine frequently, or building other VMs based
+# on this release of Ubuntu, you could install the following plugin for Vagrant:
+# vagrant plugin install vagrant-cachier
 
 Vagrant.configure("2") do |config|
   config.vm.define "ubuntu" do |ubuntu|
-    ubuntu.vm.box = "ubuntu/xenial64"
+    ubuntu.vm.box = "ubuntu/bionic64"
     ubuntu.vm.hostname = "ubuntu"
     ubuntu.vm.box_check_update = false
     ubuntu.vm.boot_timeout = 1200
 
+    if Vagrant.has_plugin?("vagrant-cachier")
+      ubuntu.cache.scope = :box
+    end
+
     ubuntu.vm.provider "virtualbox" do |vb|
+      #############################################################################################
+      ### BASIC DETAILS
+      #############################################################################################
+      ##
+      ## This tells Virtualbox to call the machine "Ubuntu" in the Virtualbox application and in
+      ## any API calls it makes. It does not affect the hostname at all.
+      vb.name = "ubuntu"
       #############################################################################################
       ### DRIVE MOUNTING
       #############################################################################################
@@ -78,22 +93,8 @@ Vagrant.configure("2") do |config|
 
     # Perform standard user account changes
     ubuntu.vm.provision :ansible_local do |ansible|
-      ansible.playbook       = "ansible_users.yml"
-      ansible.install        = true
-      ansible.inventory_path = "inventory"
-    end
-
-    # Mount the shared volumes and manage the links
-    ubuntu.vm.provision :ansible_local do |ansible|
-      ansible.playbook       = "ansible_mounts.yml"
-      ansible.install        = true
-      ansible.inventory_path = "inventory"
-    end
-    
-    # Install any extra software required
-    ubuntu.vm.provision :ansible_local do |ansible|
-      ansible.playbook       = "ansible_software.yml"
-      ansible.inventory_path = "inventory"
+      ansible.playbook       = "ansible_deploy.yml"
+      ansible.install_mode   = "pip"
     end
   end
 end
