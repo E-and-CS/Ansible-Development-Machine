@@ -1,0 +1,4 @@
+ubuntugnome ansible_host=localhost ansible_connection=local
+ubuntumate ansible_host=localhost ansible_connection=local
+kubuntu ansible_host=localhost ansible_connection=local
+ubuntu ansible_host=localhost ansible_connection=local

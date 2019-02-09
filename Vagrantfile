@@ -23,7 +23,6 @@ Vagrant.configure("2") do |config|
     ubuntu.vm.hostname = "ubuntu"
     ubuntu.vm.box_check_update = false
     ubuntu.vm.boot_timeout = 1200
-
     if Vagrant.has_plugin?("vagrant-cachier")
       ubuntu.cache.scope = :box
     end
@@ -93,8 +92,15 @@ Vagrant.configure("2") do |config|
 
     # Perform standard user account changes
     ubuntu.vm.provision :ansible_local do |ansible|
-      ansible.playbook       = "ansible_deploy.yml"
+      ansible.playbook       = "ansible_users.yml"
       ansible.install_mode   = "pip"
+      ansible.inventory_path = "inventory"
+    end
+
+    # Install any extra software required
+    ubuntu.vm.provision :ansible_local do |ansible|
+      ansible.playbook       = "ansible_software.yml"
+      ansible.inventory_path = "inventory"
     end
   end
 end

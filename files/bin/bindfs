@@ -1,0 +1,21 @@
+#!/bin/bash
+if [ -e /home/spriggsj/Dropbox ]; then
+  while [ ! -e /HostHome/Documents/Keepass-Sync/SSH ]; do
+    echo Waiting for VBoxSF to mount
+    sleep 2
+  done
+  echo Mounting Dropbox Sync\'d to Host paths
+  if [ "`mount | grep Dropbox/Passwords_Shared_OC/Personal`" == "" ]; then
+    bindfs -n -o nonempty /HostHome/Documents/Keepass-Sync/Personal/ /home/spriggsj/Dropbox/Passwords_Shared_OC/Personal/
+  fi
+  if [ "`mount | grep Dropbox/Passwords_Shared_OC/Private`" == "" ]; then
+    bindfs -n -o nonempty /HostHome/Documents/Keepass-Sync/Private/ /home/spriggsj/Dropbox/Passwords_Shared_OC/Private/
+  fi
+  if [ "`mount | grep Dropbox/SSH_Keys`" == "" ]; then
+    bindfs -n -o nonempty /HostHome/Documents/Keepass-Sync/SSH/ /home/spriggsj/Dropbox/SSH_Keys/
+  fi
+  echo Mounted. Starting Dropbox
+  if dropbox running ; then
+    dropbox start -i &
+  fi
+fi

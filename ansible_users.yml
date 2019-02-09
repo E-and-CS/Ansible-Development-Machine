@@ -1,0 +1,216 @@
+---
+- name: Configure the host
+  hosts: all
+  become: true
+
+  tasks:  
+    - name: Establish No-Exec Mount in fstab
+      mount:
+        path: /HostHome
+        src: HostHome
+        fstype: vboxsf
+        opts: _netdev,uid=1000,gid=1000,dmask=0077,fmask=0177
+        state: mounted
+
+    - name: Establish Exec Mount in fstab
+      mount:
+        path: /HostHomeExec
+        src: HostHome
+        fstype: vboxsf
+        opts: _netdev,uid=1000,gid=1000,dmask=0077,fmask=0077
+        state: mounted
+
+- name: Check User Details
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: User to Use
+      set_fact:
+        my_user_name: "{{ user_name|default('vagrant') }}"
+        my_pass_word: "{{ user_password|default('SuperSecretPassword') }}"
+        
+    - name: Check user details
+      getent:
+        database: passwd
+        key: "{{ my_user_name }}"
+        fail_key: False
+      register: getent_passwd
+
+    - name: Proceeding with user_status
+      debug: var=getent_passwd
+      
+    - name: Check user details
+      set_fact: 
+        user_status: ""
+
+    - name: Check user details
+      set_fact: 
+        user_status: "{{ getent_passwd['getent_passwd'][my_user_name] }}"
+      when: getent_passwd is defined and getent_passwd['getent_passwd'] is defined
+
+    - name: Proceeding with user_status
+      debug: var=user_status
+
+    - name: Check user shadow
+      getent:
+        database: shadow
+        key: "{{ my_user_name }}"
+        fail_key: False
+        split: ':'
+      register: getent_shadow
+      when: user_status != ''
+
+    - name: Check user shadow salt
+      getent:
+        database: shadow
+        key: "{{ my_user_name }}"
+        fail_key: False
+        split: '$'
+      register: getent_shadow_salt
+      when: user_status != ''
+    
+    - name: Create password for comparison
+      set_fact:
+        debug_user_password: "{{ my_pass_word | password_hash('sha512', getent_shadow_salt['ansible_facts']['getent_shadow'][my_user_name+':'][1]) }}"
+      when: getent_shadow_salt is defined and user_status != ''
+
+    - name: Rename user group to make it non-user specific
+      lineinfile:
+        state: present
+        path: /etc/group
+        regexp: "^{{ item }}:(?P<id>[^:]*):1000:(?P<usera>.*)(?P<userb>{{ my_user_name }},{{ item }}|{{ item }},{{ my_user_name }}|{{ my_user_name }}|{{ item }}|)(?P<userc>.*)$"
+        line: 'local_users:\g<id>:1000:\g<usera>{{ my_user_name }},{{ item }}\g<userc>'
+        backrefs: yes
+      when: user_status == ''
+      with_items:
+      - ubuntu
+      - vagrant
+
+- name: Configure user account
+  hosts: all
+  become: yes
+  
+  tasks:
+    - name: Set user record in sudoers
+      lineinfile:
+        state: present
+        path: /etc/sudoers.d/90-cloud-init-users
+        line: "{{ my_user_name }} ALL=(ALL) NOPASSWD:ALL"
+        owner: root
+        group: root
+        mode: 0440
+    
+    - name: Create user
+      user:
+        name: "{{ my_user_name }}"
+        non_unique: yes
+        uid: 1000
+        group: 1000
+        groups: sudo
+        append: yes
+        password: "{% if debug_user_password is defined and debug_user_password != '' %}{{ debug_user_password }}{% else %}{{ my_pass_word | password_hash('sha512') }}{% endif %}"
+        home: "/home/{{ my_user_name }}"
+        update_password: always
+        shell: /bin/bash
+      when: 
+        - user_status == '' or debug_user_password is defined
+
+    - name: Re-ID the existing user
+      lineinfile:
+        state: present
+        path: /etc/passwd
+        regexp: "^{{ original_user_name|default('vagrant') }}:([^:]*):([^:]*):([^:]*):(.*)$"
+        line: "{{ original_user_name|default('vagrant') }}:\\1:1001:1000:\\4"
+        backrefs: yes
+      when: user_status == ''
+
+    - name: Reset permissions for the existing user
+      file:
+        state: directory
+        path: "/home/{{ original_user_name|default('vagrant') }}"
+        owner: 1001
+        group: 1000
+        mode: 0777
+        recurse: yes
+      when: user_status == ''
+
+    - name: Reset permissions for the existing user's .ssh directory
+      file:
+        state: directory
+        path: "/home/{{ original_user_name|default('vagrant') }}/.ssh"
+        owner: 1001
+        group: 1000
+        mode: 0700
+        recurse: yes
+      when: user_status == ''
+
+    - name: Reset permissions for the existing user's SSH keys
+      file:
+        state: file
+        path: "/home/{{ original_user_name|default('vagrant') }}/.ssh/authorized_keys"
+        owner: 1001
+        group: 1000
+        mode: 0600
+      when: user_status == ''
+
+    - name: Create missing paths
+      file:
+        path: "/home/{{ my_user_name }}{{ item }}"
+        state: directory
+        owner: 1000
+        group: 1000
+      with_items: "{{ create_dirs }}"
+      when: create_dirs is defined
+
+    - name: Set up links
+      file:
+        path: "/home/{{ my_user_name }}{{ item.dst }}"
+        src: "{{ item.src }}"
+        state: link
+        force: yes
+        owner: 1000
+        group: 1000
+      with_items: "{{ link_dirs }}"
+      when: link_dirs is defined
+    
+    - name: Ensure Config Files refer to these links
+      lineinfile:
+        path: "/home/{{ my_user_name }}{{ item.file }}"
+        line: "{{ item.line }}"
+        state: present
+        owner: 1000
+        group: 1000
+        mode: 0644
+      with_items: "{{ set_env_vars }}"
+      when: set_env_vars is defined
+
+    - name: Check if you have any personal scripts
+      command: ls files/bin
+      register: personal_bin_contents
+      ignore_errors: true
+
+    - name: Ensure personal scripts are in the .local
+      copy:
+        src: files/bin
+        dest: "/home/{{ my_user_name }}/.local"
+        owner: 1000
+        group: 1000
+        mode: 0700
+      when: personal_bin_contents|succeeded and personal_bin_contents.stdout != ""
+      
+    - name: Add tasks to Crontab
+      cron:
+        name: "{{ item.name }}"
+        special_time: "{{ item.special_time|default(omit) }}"
+        minute: "{{ item.minute|default(omit) }}"
+        hour: "{{ item.hour|default(omit) }}"
+        day: "{{ item.day|default(omit) }}"
+        month: "{{ item.month|default(omit) }}"
+        weekday: "{{ item.weekday|default(omit) }}"
+        user: "{{ item.user|default(my_user_name) }}"
+        job: "{{ item.command|default(omit) }}"
+        env: "{% if item.envvar is defined %}yes{% else %}no{% endif %}"
+        value: "{{ item.envvar|default(omit) }}"
+      with_items: "{{ set_cron_items }}"
+      when: set_cron_items is defined

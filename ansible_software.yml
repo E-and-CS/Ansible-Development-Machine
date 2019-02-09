@@ -1,0 +1,135 @@
+---
+- name: Install other software with proxy
+  hosts: all
+  become: yes
+  environment:
+    http_proxy: "{{ apt_proxy|default(omit) }}"
+    https_proxy: "{{ apt_proxy|default(omit) }}"
+  
+  tasks:
+    - name: Install software via Apt
+      apt: 
+        name: "{{ item }}"
+        state: latest
+      with_items:
+      - build-essential
+      - libssl-dev 
+      - libffi-dev
+      - python-dev
+      - aptitude
+      # Previously, this held python-pip, but that is installed by the Vagrantfile now
+      
+    - name: Install YOUR software via Apt
+      apt: 
+        name: "{{ item.name|default(omit) }}"
+        deb: "{{ item.deb|default(omit) }}"
+        state: present
+      with_items: "{{ install_apt_packages }}"
+      when: install_apt_packages is defined
+      
+    - name: Set keyboard layout
+      debconf:
+        name: "keyboard-configuration"
+        question: "keyboard-configuration/{{ item.key }}"
+        value: "{{ item.value }}"
+        vtype: "{{ item.type|default('string') }}"
+      with_items:
+      - { key: "altgr", value: "The default for the keyboard layout", vtype: "select" }
+      - { key: "compose", value: "No compose key", vtype: "select" }
+      - { key: "ctrl_alt_bksp", value: "false", type: "boolean" }
+      - { key: "variant", value: "English (UK)", vtype: "select" }
+      - { key: "layout", value: "English (UK)", vtype: "select" }
+      - { key: "model", value: "Generic 105-key PC (intl.)", vtype: "select" }
+      when:
+      - DesktopEnvironment is defined
+
+    - name: Reconfigure keyboard layout
+      command: '/usr/sbin/dpkg-reconfigure --frontend noninteractive keyboard-configuration'
+      when:
+      - DesktopEnvironment is defined
+
+    - name: Install Desktop Environment
+      command: "apt-get install {{ DesktopEnvironment }}^ -y"
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      when:
+      - DesktopEnvironment is defined
+
+    - name: Install language packs
+      apt:
+        name: "{{ item }}"
+      when:
+      - DesktopEnvironment is defined
+      with_items:
+      - language-pack-en
+      - language-pack-en-base
+
+    - name: Install language packs - KDE
+      apt:
+        name: "{{ item }}"
+      when:
+      - DesktopEnvironment is defined and DesktopEnvironment == 'kubuntu-desktop'
+      with_items:
+      - language-pack-kde-en
+      
+    - name: Install language packs - Gnome
+      apt:
+        name: "{{ item }}"
+      when:
+      - DesktopEnvironment is defined and (DesktopEnvironment == 'ubuntu-desktop' or DesktopEnvironment == 'ubuntu-gnome-desktop')
+      with_items:
+      - language-pack-gnome-en
+      - language-pack-gnome-en-base
+      
+    - name: Add Kubuntu Desktop Backports
+      apt_repository:
+        repo: 'ppa:kubuntu-ppa/backports'
+      when:
+      - DesktopBackports is defined and DesktopBackports == true
+      - DesktopEnvironment is defined and DesktopEnvironment == 'kubuntu-desktop'
+
+    - name: Run a Full Upgrade
+      apt:
+        upgrade: full
+        autoremove: yes
+        autoclean: yes
+
+- name: Install other software without proxy
+  hosts: all
+  become: yes
+  
+  tasks:
+    - name: Install other Python libraries
+      pip:
+        name: "{{item}}"
+      with_items:
+      - simplejson
+      # Previously, this included ansible, but that is installed by the Vagrantfile instead
+      - pytz
+
+    - name: Add Azure-CLI Signing Key (New one)
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add Azure-CLI Repo
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
+        filename: azure-cli
+        state: present
+        update_cache: yes
+
+    - name: Install Azure-CLI
+      apt:
+        name: azure-cli
+        state: present
+
+#- name: Reboot once everything is done
+#  hosts: all
+#  become: yes
+#  
+#  tasks:
+#    - name: restart server
+#      shell: sleep 2 && /sbin/shutdown -r now "RedHat system package upgraded"
+#      async: 1
+#      poll: 0

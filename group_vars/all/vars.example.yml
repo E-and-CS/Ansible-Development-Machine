@@ -30,20 +30,10 @@
 ## while HostHomeExec has 700 for files and 700 for directories.
 #
 #link_dirs:
-#  - { src: "/HostHome/Standard_Desktop_Files/azure", dst: "/.azure" }
-#  - { src: "/HostHomeExec/Standard_Desktop_Files/bin", dst: "/bin" }
-#
-#  - { src: "/HostHome/Standard_Desktop_Files/dotfiles/openstack", dst: "/.config/openstack" }
-#  - { src: "/HostHome/Standard_Desktop_Files/dotfiles/ansible", dst: "/.config/ansible" }
-#  - { src: "/HostHome/Standard_Desktop_Files/dotfiles/.bash_history", dst: "/.bash_history" }
-#  - { src: "/HostHome/Standard_Desktop_Files/dotfiles/.gitconfig", dst: "/.gitconfig" }
-#
-#  - { src: "/HostHome/Standard_Desktop_Files/ssh/authorized_keys", dst: "/.ssh/authorized_keys" }
-#  - { src: "/HostHome/Standard_Desktop_Files/ssh/config", dst: "/.ssh/config" }
-#  - { src: "/HostHome/Standard_Desktop_Files/SSH/id_rsa.pub", dst: "/.ssh/id_rsa.pub" }
-#  - { src: "/HostHome/Standard_Desktop_Files/SSH/id_rsa", dst: "/.ssh/id_rsa" }
-#
-#  - { src: "/HostHomeExec/Standard_Desktop_Files/Terraform", dst: "/terraform" }
+#  - { src: "/HostHome/.dotfiles/openstack", dst: "/.config/openstack" }
+#  - { src: "/HostHome/.dotfiles/ansible", dst: "/.config/ansible" }
+#  - { src: "/HostHome/Sources", dst: "/Sources" }
+#  - { src: "/HostHomeExec/Sources/bin", dst: "/bin" }
 #
 ## These paths are ones which must be created before the above links can be created.
 ## Particularly, .config but you might want to include "Documents" or "bin"
@@ -63,6 +53,7 @@
 ## I typically install certain pacakges after each run. You might also want to do this
 #
 #install_apt_packages:
+#  - byobu
 #  - git-cola
 #
 ## These are lines that are added to Cron jobs on your server
@@ -70,6 +61,11 @@
 ## name, special_time, minute, hour, day, month, weekday, user, command, envvar
 #
 #set_cron_items:
+#  - name: Set path for crontab
+#    envvar: "/home/{{ user_name|default('ubuntu') }}/bin:/home/{{ user_name|default('ubuntu') }}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+#  - name: Mount network share
+#    special_time: reboot
+#    command: sshfs user@192.168.1.1:/ /mnt
 #  - name: Remind yourself to take a break
 #    minute: */15
 #    command: wall "Take a break"
@@ -86,3 +82,8 @@
 # DesktopEnvironment: xubuntu-desktop
 # DesktopEnvironment: ubuntu-mate-desktop
 # DesktopEnvironment: ubuntu-gnome-desktop
+
+## Should the desktop environment pull the latest backports?
+## Currently only Kubuntu has this.
+
+# DesktopBackports: true
