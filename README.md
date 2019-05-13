@@ -28,10 +28,8 @@ This build mounts two directories - /HostHome and /HostHomeExec - against the
 host machine's user home directory. I personally create the following links
 in the machine:
 
-/HostHome/Standard_Build/K5 to $HOME/K5
-/HostHome/Standard_Build/dotfiles/ssh to $HOME/.ssh
-/HostHome/Standard_Build/dotfiles/openstack/ to $HOME/.config/openstack/
-/HostHomeExec/Standard_Build/bin to $HOME/bin
+* `/HostHome/Standard_Build/dotfiles/ssh` to `$HOME/.ssh`
+* `/HostHomeExec/Standard_Build/bin` to `$HOME/bin`
 
 This means that for the files that shouldn't have the exec bits set (SSH keys,
 etc.) I can use the /HostHome path for them, but for the paths that do require
