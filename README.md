@@ -1,11 +1,4 @@
-# This is a work in progress
-
-This means that if you find something wrong in here, please let me know! Create
-issues in the github repo, or even better, make changes in your own fork and
-raise pull requests!
-
-If you're stuck, I'm *MORE* than happy to receive emails asking for help! Please
-let me know what you need!!
+**Archived due to no updates for >2 years**
 
 # K5 Ansible and Openstack Development Machine
 
